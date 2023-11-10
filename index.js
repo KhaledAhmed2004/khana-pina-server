@@ -20,7 +20,6 @@ app.use(
   })
 );
 
-
 // MongoDB Configuration
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vx7njxc.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -165,7 +164,21 @@ async function run() {
     });
     app.get("/api/v1/foodItems", async (req, res) => {
       try {
-        const result = await foodItemsCollection.find().toArray();
+        let query = {};
+        const foodName = req.query.foodName;
+        console.log(foodName);
+        if (foodName) {
+          query.foodName = foodName;
+        }
+        const page = req.query.page;
+        const pageNumber = parseInt(page);
+        const perPage = 9;
+        const skip = pageNumber * perPage;
+        const result = await foodItemsCollection
+          .find(query)
+          .skip(skip)
+          .limit(perPage)
+          .toArray();
         res.send(result);
       } catch (error) {
         console.log("Error processing the JSON data:", error);
