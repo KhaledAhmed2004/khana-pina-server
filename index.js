@@ -15,9 +15,11 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:5173",
+    // origin: "https://resturent-c129f.web.app",
     credentials: true,
   })
 );
+
 
 // MongoDB Configuration
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vx7njxc.mongodb.net/?retryWrites=true&w=majority`;
