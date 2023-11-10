@@ -189,6 +189,12 @@ async function run() {
         res.status(500).send("Internal Server Error");
       }
     });
+    app.get("/api/v1/food/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const food = await foodItemsCollection.findOne(query);
+      res.send(food);
+    });
     // app.get("/api/v1/foodItems", async (req, res) => {
     //   try {
     //     let query = {};
