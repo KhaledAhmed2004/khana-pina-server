@@ -11,7 +11,13 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 // MongoDB Configuration
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vx7njxc.mongodb.net/?retryWrites=true&w=majority`;
@@ -58,7 +64,7 @@ async function run() {
     // Define the foodItemCollection
     const foodItemsCollection = client.db("restaurant").collection("foodItems");
 
-    app.get("/api/v1/testimonial", verify, async (req, res) => {
+    app.get("/api/v1/testimonial", async (req, res) => {
       try {
         const result = await testimonialCollection.find().toArray();
         res.send(result);
@@ -72,14 +78,25 @@ async function run() {
       console.log("user form jwt:", user);
       const token = jwt.sign(user, "khaled", { expiresIn: "1h" });
       console.log("token for jwt:", token);
+      //   res.send(token);
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false,
+          secure: true,
           sameSite: "none",
         })
         .send({ success: true, token });
     });
+
+    // app.post("/api/v1/cookie", (req, res) => {
+    //   res
+    //     .cookie("testCookie", "testValue", {
+    //       httpOnly: true,
+    //       secure: false,
+    //       sameSite: "none",
+    //     })
+    //     .send("Cookie set successfully");
+    // });
 
     app.post("/api/v1/purchaseOrders", async (req, res) => {
       try {
@@ -111,16 +128,6 @@ async function run() {
       }
     });
 
-    // app.get("/api/v1/purchaseOrders", verify, async (req, res) => {
-    //   try {
-    //     const queryEmail = req.query.email;
-    //     const tokenEmail = req.user.email;
-    //     console.log(req);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // });
-
     app.delete("/api/v1/purchaseOrders/:orderId", async (req, res) => {
       try {
         const { orderId } = req.params;
@@ -138,6 +145,14 @@ async function run() {
         const body = req.body;
         console.log(body);
         const result = await foodItemsCollection.insertOne(body);
+        res.send(result);
+      } catch (error) {
+        console.log("Error processing the JSON data:", error);
+      }
+    });
+    app.get("/api/v1/foodItems", async (req, res) => {
+      try {
+        const result = await foodItemsCollection.find().toArray();
         res.send(result);
       } catch (error) {
         console.log("Error processing the JSON data:", error);
