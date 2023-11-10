@@ -64,6 +64,8 @@ async function run() {
     // Define the foodItemCollection
     const foodItemsCollection = client.db("restaurant").collection("foodItems");
 
+    const chiefCollection = client.db("restaurant").collection("chiefs");
+
     app.get("/api/v1/testimonial", async (req, res) => {
       try {
         const result = await testimonialCollection.find().toArray();
@@ -134,6 +136,15 @@ async function run() {
         console.log(orderId);
         const query = { _id: new ObjectId(orderId) };
         const result = await purchaseOrdersCollection.deleteOne(query);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    app.get("/api/v1/chief", async (req, res) => {
+      try {
+        const result = await chiefCollection.find().toArray();
         res.send(result);
       } catch (error) {
         console.log(error);
