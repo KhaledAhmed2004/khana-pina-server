@@ -181,6 +181,14 @@ async function run() {
         console.log("Error processing the JSON data:", error);
       }
     });
+    app.get("/api/v1/myAddedItems", async (req, res) => {
+      try {
+        const result = await myAddedFoodItemsCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.log("Error processing the JSON data:", error);
+      }
+    });
     app.get("/api/v1/foodItems", async (req, res) => {
       try {
         let query = {};
