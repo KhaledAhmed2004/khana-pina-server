@@ -62,8 +62,17 @@ async function run() {
       .db("restaurant")
       .collection("purchaseOrders");
 
+    //define the userInformationCollection
+    const userInformationCollection = client
+      .db("restaurant")
+      .collection("userInformation");
+
     // Define the foodItemCollection
     const foodItemsCollection = client.db("restaurant").collection("foodItems");
+
+    const myAddedFoodItemsCollection = client
+      .db("restaurant")
+      .collection("myAddedItems");
 
     const chiefCollection = client.db("restaurant").collection("chiefs");
 
@@ -90,16 +99,6 @@ async function run() {
         })
         .send({ success: true, token });
     });
-
-    // app.post("/api/v1/cookie", (req, res) => {
-    //   res
-    //     .cookie("testCookie", "testValue", {
-    //       httpOnly: true,
-    //       secure: false,
-    //       sameSite: "none",
-    //     })
-    //     .send("Cookie set successfully");
-    // });
 
     app.post("/api/v1/purchaseOrders", async (req, res) => {
       try {
@@ -152,11 +151,31 @@ async function run() {
       }
     });
 
+    app.post("/api/v1/userInformation", async (req, res) => {
+      try {
+        const body = req.body;
+        // console.log(body);
+        const result = await userInformationCollection.insertOne(body);
+        res.send(result);
+      } catch (error) {
+        console.log("Error processing the JSON data:", error);
+      }
+    });
     app.post("/api/v1/foodItems", async (req, res) => {
       try {
         const body = req.body;
         console.log(body);
         const result = await foodItemsCollection.insertOne(body);
+        res.send(result);
+      } catch (error) {
+        console.log("Error processing the JSON data:", error);
+      }
+    });
+    app.post("/api/v1/myAddedItems", async (req, res) => {
+      try {
+        const body = req.body;
+        console.log(body);
+        const result = await myAddedFoodItemsCollection.insertOne(body);
         res.send(result);
       } catch (error) {
         console.log("Error processing the JSON data:", error);
@@ -168,7 +187,6 @@ async function run() {
 
         const foodName = req.query.foodName;
         if (foodName) {
-          // Use a case-insensitive regular expression for partial matching
           query.foodName = { $regex: new RegExp(foodName, "i") };
         }
 
@@ -195,28 +213,13 @@ async function run() {
       const food = await foodItemsCollection.findOne(query);
       res.send(food);
     });
-    // app.get("/api/v1/foodItems", async (req, res) => {
-    //   try {
-    //     let query = {};
-    //     const foodName = req.query.foodName;
-    //     console.log(foodName);
-    //     if (foodName) {
-    //       query.foodName = foodName;
-    //     }
-    //     const page = req.query.page;
-    //     const pageNumber = parseInt(page);
-    //     const perPage = 9;
-    //     const skip = pageNumber * perPage;
-    //     const result = await foodItemsCollection
-    //       .find(query)
-    //       .skip(skip)
-    //       .limit(perPage)
-    //       .toArray();
-    //     res.send(result);
-    //   } catch (error) {
-    //     console.log("Error processing the JSON data:", error);
-    //   }
-    // });
+
+    app.get("/api/v1/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const food = await foodItemsCollection.findOne(query);
+      res.send(food);
+    });
   } catch (error) {
     console.log("MongoDB connection error:", error);
   }
