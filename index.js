@@ -14,11 +14,19 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    // origin: "https://resturent-c129f.web.app",
+    origin: "https://resturent-c129f.web.app",
     credentials: true,
   })
 );
+
+// app.use(
+//   cors({
+//     // origin: "http://localhost:5173",
+//     // origin: "https://resturent-c129f.web.app",
+//     origin: "https://resturent-c129f.web.app/",
+//     credentials: true,
+//   })
+// );
 
 // MongoDB Configuration
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vx7njxc.mongodb.net/?retryWrites=true&w=majority`;
@@ -111,13 +119,14 @@ async function run() {
       }
     });
 
-    app.get("/api/v1/purchaseOrders", verify, async (req, res) => {
+    app.get("/api/v1/purchaseOrders", async (req, res) => {
       try {
-        const queryEmail = req.query.email;
-        const tokenEmail = req.user.email;
-        if (queryEmail !== tokenEmail) {
-          return res.status(403).send({ massage: "forbidden assess" });
-        }
+        const queryEmail = req?.query?.email;
+        const tokenEmail = req?.user?.email;
+        console.log("queryEmail:", queryEmail, "tokenEmail", tokenEmail);
+        // if (queryEmail !== tokenEmail) {
+        //   return res.status(403).send({ massage: "forbidden assess" });
+        // }
         let query = {};
         if (queryEmail) {
           query.email = queryEmail;
@@ -154,7 +163,7 @@ async function run() {
     app.post("/api/v1/userInformation", async (req, res) => {
       try {
         const body = req.body;
-        // console.log(body);
+
         const result = await userInformationCollection.insertOne(body);
         res.send(result);
       } catch (error) {
@@ -181,14 +190,120 @@ async function run() {
         console.log("Error processing the JSON data:", error);
       }
     });
+
+    // try {
+    //   const queryEmail = req?.query?.email;
+    //   const tokenEmail = req?.user?.email;
+    //   console.log("queryEmail:", queryEmail, "tokenEmail", tokenEmail);
+    //   // if (queryEmail !== tokenEmail) {
+    //   //   return res.status(403).send({ massage: "forbidden assess" });
+    //   // }
+    //   let query = {};
+    //   if (queryEmail) {
+    //     query.email = queryEmail;
+    //   }
+    //   const result = await purchaseOrdersCollection.find(query).toArray();
+    //   res.send(result);
+    // } catch (error) {
+    //   console.log(error);
+    //   res.status(500).send("Internal Server Error");
+    // }
+
     app.get("/api/v1/myAddedItems", async (req, res) => {
       try {
-        const result = await myAddedFoodItemsCollection.find().toArray();
+        const queryEmail = req?.query?.email;
+        console.log("queryEmail:", queryEmail);
+        let query = {};
+        if (queryEmail) {
+          query.email = queryEmail;
+        }
+        const result = await myAddedFoodItemsCollection.find(query).toArray();
         res.send(result);
       } catch (error) {
         console.log("Error processing the JSON data:", error);
       }
     });
+    app.get("/api/v1/myAddedItems/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await myAddedFoodItemsCollection.findOne(query);
+
+        if (!result) {
+          return res.status(404).send({ message: "Item not found" });
+        }
+
+        res.send(result);
+      } catch (error) {
+        console.log("Error processing the JSON data:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+    app.delete("/api/v1/myAddedItems/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await myAddedFoodItemsCollection.deleteOne(query);
+        res.send(result);
+      } catch (error) {
+        console.log("Error processing the JSON data:", error);
+      }
+    });
+    app.put("/api/v1/myAddedItems/:id", async (req, res) => {
+      try {
+        const id = { _id: new ObjectId(req.params.id) };
+        const updateData = {
+          $set: {
+            ...req.body,
+          },
+        };
+        const option = { upsert: true };
+        const result = await myAddedFoodItemsCollection.updateOne(
+          id,
+          updateData,
+          option
+        );
+        res.send(result);
+      } catch (error) {
+        console.log("Error processing the JSON data:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    });
+
+    // app.get("/api/v1/myAddedItems", async (req, res) => {
+    //   try {
+    //     const result = await myAddedFoodItemsCollection.find().toArray();
+    //     res.send(result);
+    //   } catch (error) {
+    //     console.log("Error processing the JSON data:", error);
+    //   }
+    // });
+
+    app.get("/api/v1/myAddedItems", async (req, res) => {
+      try {
+        const queryEmail = req?.query?.email;
+        console.log("qury", queryEmail);
+        const tokenEmail = req?.user?.email;
+        console.log("token", tokenEmail);
+
+        // if (queryEmail !== tokenEmail) {
+        //   return res.status(403).send({ message: "forbidden access" });
+        // }
+
+        let query = {};
+        if (queryEmail) {
+          query.email = queryEmail;
+        }
+
+        const result = await myAddedFoodItemsCollection.find(query).toArray();
+
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
     app.get("/api/v1/foodItems", async (req, res) => {
       try {
         let query = {};
